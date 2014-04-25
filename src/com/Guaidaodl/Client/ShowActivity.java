@@ -38,8 +38,8 @@ public class ShowActivity extends Activity
 
 		//获取IP地址
 		Intent intent = getIntent();
-		String ipAdress = intent.getStringExtra(StartActivity.MESSAGE);
-		Runnable r = new ClientRunnable(h, ipAdress);
+		String ipAddress = intent.getStringExtra(StartActivity.MESSAGE);
+		Runnable r = new ClientRunnable(h, ipAddress);
 		Thread t = new Thread(r);
 		t.start();
 	}

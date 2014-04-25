@@ -31,6 +31,9 @@ public class ClientRunnable implements Runnable
 			in = s.getInputStream();
 			OutputStream outStream = s.getOutputStream();
 			out = new PrintWriter(outStream, true);
+
+			//获取图片
+			getIamge();
 		}
 		catch (SocketTimeoutException e)
 		{
@@ -42,16 +45,18 @@ public class ClientRunnable implements Runnable
 		{
 			e.printStackTrace();
 		}
-			
+
+	}
+
+	public void getIamge()
+	{
 		try
 		{
-			//��ȡͼƬ
 			while (s.isConnected())
 			{
-				//��ȡ�ļ�����
 				int size = getSize(in);
 				buffer = new byte[size+200];
-				int count = 0; //��ǰ������ֽ���
+				int count = 0;
 				while(count < size)
 				{
 					int n = in.read(buffer, count, size - count);
@@ -59,7 +64,7 @@ public class ClientRunnable implements Runnable
 						break;
 					count+=n;
 				}
-				
+
 				sendMessage();
 				Log.i(CLIENT_TAG, "size of picture is " + size);
 				out.println("aaa");
@@ -69,8 +74,11 @@ public class ClientRunnable implements Runnable
 		{
 			e.printStackTrace();
 		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
-
 	//获取图片大小
 	public int getSize(InputStream in)
 	{
