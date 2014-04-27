@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Client</string>
-    <string name="ip_hint">请输入IP地址</string>
+    <string name="ip_hint">IP地址</string>
+    <string name="name_hint">用户名</string>
 </resources>

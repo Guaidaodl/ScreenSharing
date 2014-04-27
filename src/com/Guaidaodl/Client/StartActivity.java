@@ -4,21 +4,28 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StartActivity extends Activity
 {
-	public static final String MESSAGE = "IPADRESS";
+	public static final String MESSAGE = "SOCKET";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		/*set it to be no title*/
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+
 		setContentView(R.layout.main);
 
 		final EditText t = (EditText)findViewById(R.id.ipText);
@@ -29,13 +36,13 @@ public class StartActivity extends Activity
 			@Override
 			public void onClick(View v) {
 				Pattern p = Pattern.compile(IPRegEx);
-				String ipAdress = t.getText().toString();
-				Matcher m = p.matcher(ipAdress);
+				String ipAddress = t.getText().toString();
+				Matcher m = p.matcher(ipAddress);
 				if(m.find()) {
 					//启动界面进行通信
 					Intent intent = new Intent(StartActivity.this, ShowActivity.class);
-					intent.putExtra(MESSAGE, ipAdress);
 
+					intent.putExtra(MESSAGE, ipAddress);
 					startActivity(intent);
 				}
 				else {
