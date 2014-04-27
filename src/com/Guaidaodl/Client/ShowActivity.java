@@ -39,10 +39,39 @@ public class ShowActivity extends Activity
 		//获取IP地址
 		Intent intent = getIntent();
 		String ipAddress = intent.getStringExtra(StartActivity.MESSAGE);
-		Runnable r = new ClientRunnable(h, ipAddress);
-		Thread t = new Thread(r);
+		startThread(h, ipAddress);
+	}
+
+	@Override
+	protected void onStop()
+	{
+		t.interrupt();
+
+		super.onStop();
+
+	}
+
+	/**
+	 * 启动新的线程用来接收图片
+	 * @param h handler
+	 * @param ipAddress 服务器ip地址
+	 */
+	public void startThread(Handler h, String ipAddress)
+	{
+		r = new ClientRunnable(h, ipAddress);
+		t = new Thread(r);
+		r.setDealer(new ExceptionDealer()
+		{
+			@Override
+			public void deal()
+			{
+				finish();
+			}
+		});
 		t.start();
 	}
 
+	ClientRunnable r;
+	private Thread t;
 	private byte[] imageBytes;
 }

@@ -21,6 +21,10 @@ public class ClientRunnable implements Runnable
 		ipAddress = ip;
 	}
 
+	public void setDealer(ExceptionDealer dealer)
+	{
+		this.dealer = dealer;
+	}
 	@Override
 	public void run()
 	{
@@ -40,10 +44,12 @@ public class ClientRunnable implements Runnable
 			e.printStackTrace();
 			for(int i = 0; i < 10; i++)
 				Log.i(CLIENT_TAG, "连接超时");
+			dealer.deal();
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			Log.i(CLIENT_TAG, "连接失败");
+			dealer.deal();
 		}
 
 	}
@@ -52,7 +58,7 @@ public class ClientRunnable implements Runnable
 	{
 		try
 		{
-			while (s.isConnected())
+			while (!Thread.currentThread().isInterrupted())
 			{
 				int size = getSize(in);
 				buffer = new byte[size+200];
@@ -70,13 +76,11 @@ public class ClientRunnable implements Runnable
 				out.println("aaa");
 			}
 		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			Log.i(CLIENT_TAG,"发生异常");
+			dealer.deal();
 		}
 	}
 	//获取图片大小
@@ -92,9 +96,9 @@ public class ClientRunnable implements Runnable
 				hasRead += in.read(buffer, hasRead, byteSize - hasRead);
 			}
 		}
-		catch(IOException e)
+		catch(Exception e)
 		{
-			e.printStackTrace();
+			dealer.deal();
 		}
 
 		return b2i(buffer);
@@ -130,4 +134,6 @@ public class ClientRunnable implements Runnable
 	private Socket s;
 	private Handler handler;
 	private byte[] buffer;
+
+	private ExceptionDealer dealer;
 }
