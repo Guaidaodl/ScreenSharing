@@ -35,6 +35,7 @@
             android:layout_marginLeft="@dimen/margin_text_layout"
             android:layout_marginBottom="0dp"
             android:layout_width="match_parent"
+            android:singleLine="true"
             android:background="@drawable/ip_text_border"/>
         <EditText android:id="@+id/userName"
             android:hint="@string/name_hint"
@@ -45,6 +46,7 @@
             android:layout_marginLeft="@dimen/margin_text_layout"
             android:layout_marginTop="0dp"
             android:layout_width="match_parent"
+            android:singleLine="true"
             android:background="@drawable/name_text_border"/>
     </LinearLayout>
     <ImageView android:layout_width="match_parent"
