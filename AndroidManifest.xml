@@ -15,5 +15,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".ShowActivity"/>
+        <service android:name=".SocketService"/>
     </application>
 </manifest>

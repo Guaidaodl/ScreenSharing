@@ -3,14 +3,13 @@ package com.Guaidaodl.Client;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
-import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +45,7 @@ public class StartActivity extends Activity
 					startActivity(intent);
 				}
 				else {
-					Log.i("xxx", "格式错误");
+					ShowMessage.displayMessage(StartActivity.this, "请输入正确的 IP 地址");
 				}
 			}
 		});
