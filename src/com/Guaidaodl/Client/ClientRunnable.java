@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.util.Log;
 public class ClientRunnable implements Runnable
 {
 	public static final String CLIENT_TAG = "CLIENT";
+	public static final int PORT = 8198;
 	public ClientRunnable(Handler h, String ip)
 	{
 		handler = h;
@@ -30,8 +33,8 @@ public class ClientRunnable implements Runnable
 	{
 		try
 		{
-			s = new Socket(ipAddress, 8198);
-			s.setSoTimeout(6000);
+			s = new Socket();
+			s.connect(new InetSocketAddress(ipAddress, PORT), 6000);
 			in = s.getInputStream();
 			OutputStream outStream = s.getOutputStream();
 			out = new PrintWriter(outStream, true);
