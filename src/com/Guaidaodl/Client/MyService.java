@@ -40,6 +40,7 @@ public class MyService extends Service {
         }
     }
 
+
     /**
      * 连接到服务器
      * @param ipAddress 服务器的ip地址
@@ -58,6 +59,18 @@ public class MyService extends Service {
         t.start();
     }
 
+    /**
+     * 从服务器断开连接
+     */
+    public void disconnect() {
+        if (s.isConnected()) {
+            try {
+                s.close();
+            } catch (IOException e) {
+
+            }
+        }
+    }
     public Socket getSocket() {
         return s;
     }

@@ -60,7 +60,6 @@ public class ClientRunnable implements Runnable {
                 }
 
                 sendMessage();
-                Log.i(CLIENT_TAG, "size of picture is " + size);
                 out.println("aaa");
             }
         } catch (Exception e) {

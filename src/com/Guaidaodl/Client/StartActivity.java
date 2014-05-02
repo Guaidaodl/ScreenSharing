@@ -10,10 +10,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -46,24 +44,37 @@ public class StartActivity extends Activity {
 
         bn.setOnClickListener(listener);
 
-        //绑定服务
-        Intent intent = new Intent(this, MyService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mBound)
-            unbindService(mConnection);
+    protected void onStart() {
+        super.onStart();
+
+        //绑定服务
+        serviceIntent = new Intent(this, MyService.class);
+        bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mBound) {
+            mBound = false;
+            unbindService(mConnection);
+        }
+
+    }
     /**
      * 结束播放时
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         ShowMessage.displayMessage(getApplicationContext(), "传输结束");
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+        mService.disconnect();
     }
 
     /**
@@ -131,6 +142,8 @@ public class StartActivity extends Activity {
     //是否和SocketService绑定
     private boolean mBound = false;
     private MyService mService;
+    private Intent serviceIntent;
+
     //ip地址的正则表达式
     private final String IPRegEx = "^((\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5]|[*])\\.){3}(\\d|[1-9]\\d|1\\d\\d|2[0-4]\\d|25[0-5]|[*])$";
 }
