@@ -69,7 +69,7 @@ public class ShowActivity extends Activity {
      * @param h         handler
      */
     public void startThread(Handler h) {
-        r = new ClientRunnable(h, mService.getSocket());
+        r = new ClientRunnable(h, mService.getSocket(), getIntent().getStringExtra(StartActivity.USER_NAME));
         t = new Thread(r);
         r.setDealer(new ExceptionDealer() {
             @Override

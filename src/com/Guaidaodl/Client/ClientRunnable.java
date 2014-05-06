@@ -3,7 +3,6 @@ package com.Guaidaodl.Client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
@@ -14,11 +13,14 @@ import android.util.Log;
 
 public class ClientRunnable implements Runnable {
     public static final String CLIENT_TAG = "CLIENT";
+    public static final int SOCKET_NO_ACK = 0;
+    public static final int SOCKET_NO_USER_NAME = 1;
     public static final int PORT = 8198;
 
-    public ClientRunnable(Handler h, Socket s) {
+    public ClientRunnable(Handler h, Socket s, String n) {
         handler = h;
         socket = s;
+        userName = n;
     }
 
     public void setDealer(ExceptionDealer dealer) {
@@ -29,9 +31,9 @@ public class ClientRunnable implements Runnable {
     public void run() {
         try {
             in = socket.getInputStream();
-            OutputStream outStream = socket.getOutputStream();
-            out = new PrintWriter(outStream, true);
-
+            out = socket.getOutputStream();
+            //发送用户名
+            sendUserName();
             //获取图片
             getImage();
         } catch (SocketTimeoutException e) {
@@ -46,29 +48,31 @@ public class ClientRunnable implements Runnable {
 
     }
 
-    public void getImage() {
-        try {
-            while (!Thread.currentThread().isInterrupted()) {
-                int size = getSize(in);
-                buffer = new byte[size + 200];
-                int count = 0;
-                while (count < size) {
-                    int n = in.read(buffer, count, size - count);
-                    if (n == -1)
-                        break;
-                    count += n;
-                }
+    public void getImage() throws IOException {
 
-                sendMessage();
-                out.println("aaa");
+        while (!Thread.currentThread().isInterrupted()) {
+            int size = getSize(in);
+            bufferImage = new byte[size + 200];
+            int count = 0;
+            while (count < size) {
+                int n = in.read(bufferImage, count, size - count);
+                if (n == -1)
+                    break;
+                count += n;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.i(CLIENT_TAG, "发生异常");
-            dealer.deal();
+            sendMessage();
+            out.write(i2b(SOCKET_NO_ACK));
         }
     }
 
+    public void sendUserName() throws IOException{
+        out.write(i2b(1));
+
+        byte[] n = userName.getBytes();
+
+        out.write(i2b(n.length));
+        out.write(n);
+    }
     //获取图片大小
     public int getSize(InputStream in) {
         byte[] buffer = new byte[4];
@@ -83,7 +87,6 @@ public class ClientRunnable implements Runnable {
         }
 
         return b2i(buffer);
-
     }
 
     //从字节到整数
@@ -97,11 +100,26 @@ public class ClientRunnable implements Runnable {
     }
 
     /**
+     * 将整数转换成对应的二进制串
+     *
+     * @param i 要转换的整数
+     * @return 返回转换完成的byte数组
+     */
+    public static byte[] i2b(int i) {
+        return new byte[]{
+                (byte) ((i >> 24) & 0xFF),
+                (byte) ((i >> 16) & 0xFF),
+                (byte) ((i >> 8) & 0xFF),
+                (byte) (i & 0xFF)
+        };
+    }
+
+    /**
      * 通过handler发送数据
      */
     public void sendMessage() {
         Bundle bundle = new Bundle();
-        bundle.putByteArray(ShowActivity.MESSAGE_KEY, buffer);
+        bundle.putByteArray(ShowActivity.MESSAGE_KEY, bufferImage);
 
         Message msg = new Message();
         msg.what = 0x1234;
@@ -110,10 +128,12 @@ public class ClientRunnable implements Runnable {
     }
 
     private InputStream in;
-    private PrintWriter out;
+    private OutputStream out;
     private Socket socket;
     private Handler handler;
-    private byte[] buffer;
 
+    private byte[] bufferImage;
+
+    private String userName;
     private ExceptionDealer dealer;
 }

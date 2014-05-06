@@ -14,7 +14,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ShowActivity"/>
+        <activity android:name=".ShowActivity"
+            android:screenOrientation="landscape"/>
         <service android:name=".MyService"/>
     </application>
 </manifest>

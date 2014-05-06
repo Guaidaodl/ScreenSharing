@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 public class StartActivity extends Activity {
     //常量
+    public static final String USER_NAME = "user_name";
     public static final int MESSAGE_SUCCESS = 0x1000;
     public static final int MESSAGE_FAIL = 0x1001;
     public static final int PORT = 8198;
@@ -86,17 +87,20 @@ public class StartActivity extends Activity {
             InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 
-
             if (!mBound) {
                 ShowMessage.displayMessage(StartActivity.this, "未启动相关服务，无法连接网络");
                 return;
             }
+            //验证ip格式是否正确
             Pattern p = Pattern.compile(IPRegEx);
             final String ipAddress = ipEditText.getText().toString();
             Matcher m = p.matcher(ipAddress);
-            if (m.find()) {
+            String userName = userNameEditText.getText().toString();
+            if (m.find() && !userName.isEmpty()) {
                 pd.show();
                 mService.connectServer(ipAddress, PORT);
+            } else if (userName.isEmpty()) {
+                ShowMessage.displayMessage(StartActivity.this, "用户名为空");
             } else {
                 ShowMessage.displayMessage(StartActivity.this, "请输入正确的 IP 地址");
             }
@@ -128,6 +132,7 @@ public class StartActivity extends Activity {
             //连接成功，启动新的显示界面
             if (msg.what == MESSAGE_SUCCESS) {
                 Intent intent = new Intent(StartActivity.this, ShowActivity.class);
+                intent.putExtra(USER_NAME, userNameEditText.getText().toString());
                 startActivityForResult(intent, 0);
             } else if (msg.what == MESSAGE_FAIL) {
                 ShowMessage.displayMessage(getApplicationContext(), "连接失败");
