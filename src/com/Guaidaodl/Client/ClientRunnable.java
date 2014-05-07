@@ -3,6 +3,7 @@ package com.Guaidaodl.Client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
@@ -61,17 +62,9 @@ public class ClientRunnable implements Runnable {
                 count += n;
             }
             sendMessage();
-            out.write(i2b(SOCKET_NO_ACK));
+            //发送ACK
+            send(0);
         }
-    }
-
-    public void sendUserName() throws IOException{
-        out.write(i2b(1));
-
-        byte[] n = userName.getBytes();
-
-        out.write(i2b(n.length));
-        out.write(n);
     }
     //获取图片大小
     public int getSize(InputStream in) {
@@ -86,32 +79,16 @@ public class ClientRunnable implements Runnable {
             dealer.deal();
         }
 
-        return b2i(buffer);
+        return TypeConvert.b2i(buffer);
     }
 
-    //从字节到整数
-    public int b2i(byte[] b) {
-        int value = 0;
-        for (int i = 0; i < 4; i++) {
-            int shift = (4 - 1 - i) * 8;
-            value += (b[i] & 0x000000FF) << shift;
-        }
-        return value;
-    }
+    public void sendUserName() throws IOException{
+        send(TypeConvert.i2b(1));
 
-    /**
-     * 将整数转换成对应的二进制串
-     *
-     * @param i 要转换的整数
-     * @return 返回转换完成的byte数组
-     */
-    public static byte[] i2b(int i) {
-        return new byte[]{
-                (byte) ((i >> 24) & 0xFF),
-                (byte) ((i >> 16) & 0xFF),
-                (byte) ((i >> 8) & 0xFF),
-                (byte) (i & 0xFF)
-        };
+        byte[] n = userName.getBytes();
+
+        send(n.length);
+        send(n);
     }
 
     /**
@@ -125,6 +102,34 @@ public class ClientRunnable implements Runnable {
         msg.what = 0x1234;
         msg.setData(bundle);
         handler.sendMessage(msg);
+    }
+
+    /**发送byte[] 数组，线程安全。
+     */
+    private synchronized boolean sendBytes(byte[] b) {
+        boolean send = false;
+        try {
+            out.write(b);
+            send = true;
+        } catch (IOException e) {
+            dealer.deal();
+        } catch (Exception e) {
+            dealer.deal();
+        } finally {
+            return send;
+        }
+    }
+    public boolean send(double d) {
+        return sendBytes(TypeConvert.d2b(d));
+    }
+    public boolean send(int i) {
+        return sendBytes(TypeConvert.i2b(i));
+    }
+    public boolean send(byte b) {
+        return sendBytes(new byte[] {b});
+    }
+    public boolean send(byte[] b) {
+        return sendBytes(b);
     }
 
     private InputStream in;
