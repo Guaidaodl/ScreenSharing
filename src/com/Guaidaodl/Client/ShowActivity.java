@@ -11,14 +11,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 
 /**
  * Created by Zoro_x on 14-4-25.
  */
-public class ShowActivity extends Activity {
+public class ShowActivity extends Activity
+        implements View.OnTouchListener{
     public static String MESSAGE_KEY = "BYTES";
+
+    private byte[] mImageBytes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,13 +35,14 @@ public class ShowActivity extends Activity {
         setContentView(R.layout.activity_show);
 
         final ImageView imageView = (ImageView) findViewById(R.id.show);
+        imageView.setOnTouchListener(this);
         //与接受线程交互用的handler
         h = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == 0x1234) {
-                    imageBytes = msg.getData().getByteArray(MESSAGE_KEY);
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                    mImageBytes = msg.getData().getByteArray(MESSAGE_KEY);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
                     imageView.setImageBitmap(bitmap);
                 }
             }
@@ -51,6 +58,21 @@ public class ShowActivity extends Activity {
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        if (r == null)
+            return false;
+        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+            final double xP = motionEvent.getX() / view.getWidth();
+            final double yP = motionEvent.getY() / view.getHeight();
+            r.send(3);
+            r.send(xP);
+            r.send(yP);
+            r.send(1);
+
+        }
+        return true;
+    }
 
     @Override
     protected void onStop() {
@@ -104,5 +126,4 @@ public class ShowActivity extends Activity {
             mBound = false;
         }
     };
-    private byte[] imageBytes;
 }
