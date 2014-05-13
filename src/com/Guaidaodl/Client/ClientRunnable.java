@@ -14,10 +14,6 @@ import android.util.Log;
 
 public class ClientRunnable implements Runnable {
     public static final String CLIENT_TAG = "CLIENT";
-    public static final int SOCKET_NO_ACK = 0;
-    public static final int SOCKET_NO_USER_NAME = 1;
-    public static final int PORT = 8198;
-
     public ClientRunnable(Handler h, Socket s, String n) {
         handler = h;
         socket = s;
@@ -33,6 +29,7 @@ public class ClientRunnable implements Runnable {
         try {
             in = socket.getInputStream();
             out = socket.getOutputStream();
+            //发送屏幕大小
             //发送用户名
             sendUserName();
             //获取图片
@@ -107,6 +104,8 @@ public class ClientRunnable implements Runnable {
     /**发送byte[] 数组，线程安全。
      */
     private synchronized boolean sendBytes(byte[] b) {
+        if (out == null)
+            return false;
         boolean send = false;
         try {
             out.write(b);
