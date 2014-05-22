@@ -21,7 +21,6 @@ import java.util.regex.Pattern;
 
 public class StartActivity extends Activity {
     //常量
-    public static final String USER_NAME = "user_name";
     public static final int MESSAGE_SUCCESS = 0x1000;
     public static final int MESSAGE_FAIL = 0x1001;
     public static final int PORT = 8198;
@@ -52,7 +51,7 @@ public class StartActivity extends Activity {
         super.onStart();
 
         //绑定服务
-        serviceIntent = new Intent(this, MyService.class);
+        serviceIntent = new Intent(this, ConnectService.class);
         bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -112,7 +111,7 @@ public class StartActivity extends Activity {
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            MyService.SocketBinder binder = (MyService.SocketBinder) iBinder;
+            ConnectService.SocketBinder binder = (ConnectService.SocketBinder) iBinder;
             mService = binder.getService();
             mService.setStartHandler(handler);
             mBound = true;
@@ -131,8 +130,7 @@ public class StartActivity extends Activity {
             pd.dismiss();
             //连接成功，启动新的显示界面
             if (msg.what == MESSAGE_SUCCESS) {
-                Intent intent = new Intent(StartActivity.this, ShowActivity.class);
-                intent.putExtra(USER_NAME, userNameEditText.getText().toString());
+                Intent intent = ShowActivity.getShowIntent(StartActivity.this, userNameEditText.getText().toString());
                 startActivityForResult(intent, 0);
             } else if (msg.what == MESSAGE_FAIL) {
                 ShowMessage.displayMessage(getApplicationContext(), "连接失败");
@@ -146,7 +144,7 @@ public class StartActivity extends Activity {
     private ProgressDialog pd = null;
     //是否和SocketService绑定
     private boolean mBound = false;
-    private MyService mService;
+    private ConnectService mService;
     private Intent serviceIntent;
 
     //ip地址的正则表达式

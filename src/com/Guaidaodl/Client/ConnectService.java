@@ -14,7 +14,7 @@ import java.net.Socket;
 /**
  * Created by Zoro_x on 14-4-28.
  */
-public class MyService extends Service {
+public class ConnectService extends Service {
     public static final int MESSAGE_CONNECT_ERROR = 0x1001;
     public static final int MESSAGE_CONNECT_SUCCESS = 0x1002;
     public static final int MESSAGE_CONNECT_TIMEOUT = 0x1003;
@@ -35,8 +35,8 @@ public class MyService extends Service {
     }
 
     public class SocketBinder extends Binder {
-        MyService getService() {
-            return MyService.this;
+        ConnectService getService() {
+            return ConnectService.this;
         }
     }
 

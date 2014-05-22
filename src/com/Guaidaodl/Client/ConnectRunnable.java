@@ -21,11 +21,11 @@ public class ConnectRunnable implements Runnable {
     public void run() {
         try {
             s.connect(new InetSocketAddress(ipAddress, port), 6000);
-            h.sendEmptyMessage(MyService.MESSAGE_CONNECT_SUCCESS);
+            h.sendEmptyMessage(ConnectService.MESSAGE_CONNECT_SUCCESS);
         } catch (SocketTimeoutException e) {
-            h.sendEmptyMessage(MyService.MESSAGE_CONNECT_ERROR);
+            h.sendEmptyMessage(ConnectService.MESSAGE_CONNECT_ERROR);
         } catch (Exception e) {
-            h.sendEmptyMessage(MyService.MESSAGE_CONNECT_ERROR);
+            h.sendEmptyMessage(ConnectService.MESSAGE_CONNECT_ERROR);
         }
     }
 

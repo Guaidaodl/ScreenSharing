@@ -21,8 +21,9 @@ import android.widget.ImageView;
  * Created by Zoro_x on 14-4-25.
  */
 public class ShowActivity extends Activity implements View.OnTouchListener{
-    public static final String MESSAGE_KEY = "BYTES";
 
+    public static final String MESSAGE_KEY = "BYTES";
+    public static final String USER_NAME = "user_name";
     public static final int MODE_DRAG = 1;
     public static final int MODE_NORMAL = 2;
 
@@ -38,10 +39,17 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
     private Thread mSenderThread;
     private Handler mHandler;
 
-    private MyService mService;
+    private ConnectService mService;
     private boolean mBound = false;
 
     private ImageView mImageView;
+
+    public static Intent getShowIntent(Context context, String userName) {
+        Intent intent = new Intent(context, ShowActivity.class);
+        intent.putExtra(USER_NAME, userName);
+
+        return intent;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +78,7 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
     protected void onStart() {
         super.onStart();
         //绑定服务
-        Intent intent = new Intent(this, MyService.class);
+        Intent intent = new Intent(this, ConnectService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -118,8 +126,9 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
     protected void onStop() {
         mSenderThread.interrupt();
         //断开服务
-        if (mBound)
+        if (mBound) {
             unbindService(mConnection);
+        }
         setResult(0);
         super.onStop();
 
@@ -127,11 +136,9 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
 
     /**
      * 启动新的线程用来接收图片
-     *
-     * @param h         handler
      */
     public void startThread(Handler h) {
-        String userName = getIntent().getStringExtra(StartActivity.USER_NAME);
+        String userName = getIntent().getStringExtra(USER_NAME);
         mClientRunnable = new ClientRunnable(h, mService.getSocket(), userName);
         mSenderThread = new Thread(mClientRunnable);
         mClientRunnable.setDealer(new ExceptionDealer() {
@@ -157,7 +164,7 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            MyService.SocketBinder binder = (MyService.SocketBinder) iBinder;
+            ConnectService.SocketBinder binder = (ConnectService.SocketBinder) iBinder;
             mService = binder.getService();
             mBound = true;
 

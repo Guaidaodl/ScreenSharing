@@ -16,6 +16,6 @@
         </activity>
         <activity android:name=".ShowActivity"
             android:screenOrientation="landscape"/>
-        <service android:name=".MyService"/>
+        <service android:name=".ConnectService"/>
     </application>
 </manifest>
