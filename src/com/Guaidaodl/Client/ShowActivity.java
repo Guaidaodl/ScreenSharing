@@ -17,6 +17,8 @@ import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 
+import java.nio.*;
+
 /**
  * Created by Zoro_x on 14-4-25.
  */
@@ -70,6 +72,9 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
                     Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
                     mImageView.setImageBitmap(bitmap);
                 }
+                if (msg.what == 0x250) {
+                    finish();
+                }
             }
         };
     }
@@ -104,15 +109,12 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
                 else{
                     final double xP = motionEvent.getX() / view.getWidth();
                     final double yP = motionEvent.getY() / view.getHeight();
-                    mClientRunnable.send(3);
-                    mClientRunnable.send(xP);
-                    mClientRunnable.send(yP);
                     Log.i("CLIENT", (mPressEndTime - mPressStartTime)+ " asdf");
                     if (mPressEndTime - mPressStartTime <= LONG_PRESS_TIME) {
-                        mClientRunnable.send(1);
+                        sendLeftClick(xP, yP);
                     }
                     else {
-                        mClientRunnable.send(2);
+                        sendRightClick(xP, yP);
                     }
                 }
                 break;
@@ -121,7 +123,22 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
         }
         return true;
     }
-
+    public void sendLeftClick(double xP, double yP) {
+        byte []commandBuffer = new byte[24];  //int+double+double+int  = 4 + 8 + 8 + 4= 24
+        ByteBuffer.wrap(commandBuffer, 0, 4).putInt(3);
+        ByteBuffer.wrap(commandBuffer, 4, 8).putDouble(xP);
+        ByteBuffer.wrap(commandBuffer, 12, 8).putDouble(yP);
+        ByteBuffer.wrap(commandBuffer, 20, 4).putInt(1);
+        mClientRunnable.send(commandBuffer);
+    }
+    public void sendRightClick(double xP, double yP) {
+        byte []commandBuffer = new byte[24];  //int+double+double+int  = 4 + 8 + 8 + 4= 24
+        ByteBuffer.wrap(commandBuffer, 0, 4).putInt(3);
+        ByteBuffer.wrap(commandBuffer, 4, 8).putDouble(xP);
+        ByteBuffer.wrap(commandBuffer, 12, 8).putDouble(yP);
+        ByteBuffer.wrap(commandBuffer, 20, 4).putInt(2);
+        mClientRunnable.send(commandBuffer);
+    }
     @Override
     protected void onStop() {
         mSenderThread.interrupt();
@@ -131,7 +148,7 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
         }
         setResult(0);
         super.onStop();
-
+        finish();
     }
 
     /**
@@ -141,20 +158,16 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
         String userName = getIntent().getStringExtra(USER_NAME);
         mClientRunnable = new ClientRunnable(h, mService.getSocket(), userName);
         mSenderThread = new Thread(mClientRunnable);
-        mClientRunnable.setDealer(new ExceptionDealer() {
-            @Override
-            public void deal() {
-                finish();
-            }
-        });
         mSenderThread.start();
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                mClientRunnable.send(2);
-                mClientRunnable.send(mImageView.getWidth());
-                mClientRunnable.send(mImageView.getHeight());
+                byte []buffer = new byte[4+4+4];
+                ByteBuffer.wrap(buffer, 0, 4).putInt(2);
+                ByteBuffer.wrap(buffer, 4, 4).putInt(mImageView.getWidth());
+                ByteBuffer.wrap(buffer, 8, 4).putInt(mImageView.getHeight());
+                mClientRunnable.send(buffer);
                 Log.i("CLIENT", "Send " + mImageView.getWidth() + " " + mImageView.getHeight());
             }
         }, 1000);

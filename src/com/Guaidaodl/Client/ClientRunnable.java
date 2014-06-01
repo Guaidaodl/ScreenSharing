@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,34 +21,28 @@ public class ClientRunnable implements Runnable {
         userName = n;
     }
 
-    public void setDealer(ExceptionDealer dealer) {
-        this.dealer = dealer;
-    }
-
     @Override
     public void run() {
         try {
             in = socket.getInputStream();
             out = socket.getOutputStream();
-            //发送屏幕大小
             //发送用户名
             sendUserName();
+            send(0);
             //获取图片
             getImage();
         } catch (SocketTimeoutException e) {
             e.printStackTrace();
             for (int i = 0; i < 10; i++)
                 Log.i(CLIENT_TAG, "连接超时");
-            dealer.deal();
+           sendMessage(0x250);
         } catch (IOException e) {
             Log.i(CLIENT_TAG, "连接失败");
-            dealer.deal();
+           sendMessage(0x250);
         }
-
     }
 
     public void getImage() throws IOException {
-
         while (!Thread.currentThread().isInterrupted()) {
             int size = getSize(in);
             bufferImage = new byte[size + 200];
@@ -58,7 +53,7 @@ public class ClientRunnable implements Runnable {
                     break;
                 count += n;
             }
-            sendMessage();
+            sendMessage(0x1234);
             //发送ACK
             send(0);
         }
@@ -73,31 +68,34 @@ public class ClientRunnable implements Runnable {
                 hasRead += in.read(buffer, hasRead, byteSize - hasRead);
             }
         } catch (Exception e) {
-            dealer.deal();
+           sendMessage(0x250);
         }
 
         return TypeConvert.b2i(buffer);
     }
 
     public void sendUserName() throws IOException{
-        send(TypeConvert.i2b(1));
-
         byte[] n = userName.getBytes();
+        int length = n.length + 8;
+        byte[] buffer = new byte[length];
+        ByteBuffer.wrap(buffer, 0, 4).putInt(1);
+        ByteBuffer.wrap(buffer, 4, 4).putInt(n.length);
+        ByteBuffer.wrap(buffer, 8, n.length).put(n);
 
-        send(n.length);
-        send(n);
+        send(buffer);
     }
 
     /**
      * 通过handler发送数据
      */
-    public void sendMessage() {
-        Bundle bundle = new Bundle();
-        bundle.putByteArray(ShowActivity.MESSAGE_KEY, bufferImage);
-
+    public void sendMessage(int messageWhat) {
         Message msg = new Message();
-        msg.what = 0x1234;
-        msg.setData(bundle);
+        msg.what = messageWhat;
+        if (messageWhat == 0x1234) {
+            Bundle bundle = new Bundle();
+            bundle.putByteArray(ShowActivity.MESSAGE_KEY, bufferImage);
+            msg.setData(bundle);
+        }        
         handler.sendMessage(msg);
     }
 
@@ -111,9 +109,9 @@ public class ClientRunnable implements Runnable {
             out.write(b);
             send = true;
         } catch (IOException e) {
-            dealer.deal();
+           sendMessage(0x250);
         } catch (Exception e) {
-            dealer.deal();
+           sendMessage(0x250);
         } finally {
             return send;
         }
@@ -139,5 +137,4 @@ public class ClientRunnable implements Runnable {
     private byte[] bufferImage;
 
     private String userName;
-    private ExceptionDealer dealer;
 }
