@@ -28,6 +28,7 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
     public static final String USER_NAME = "user_name";
     public static final int MODE_DRAG = 1;
     public static final int MODE_NORMAL = 2;
+    public static final int MODE_ZOOM = 3;
 
     private byte[] mImageBytes;
     private int mMode;
@@ -93,20 +94,27 @@ public class ShowActivity extends Activity implements View.OnTouchListener{
             return false;
         switch (motionEvent.getAction()) {
             case MotionEvent.ACTION_MOVE:
-                if (Math.abs(mPreX - motionEvent.getX()) > 30 && Math.abs(mPreY - motionEvent.getY()) > 30)
+                if (Math.abs(mPreX - motionEvent.getX()) > 30 && Math.abs(mPreY - motionEvent.getY()) > 30) {
                     mMode = MODE_DRAG;
+                    if (motionEvent.getPointerCount() == 2)
+                        Log.i("xxx", "缩放");
+                    else if (motionEvent.getPointerCount() == 1)
+                        Log.i("xxx", "拖拽");
+                }
                 break;
             case MotionEvent.ACTION_DOWN:
                 mPressStartTime = System.currentTimeMillis();
                 mPreX = motionEvent.getX();
                 mPreY = motionEvent.getY();
+                if (motionEvent.getPointerCount() == 2) {
+                    Log.i("xxx", "222222");
+                }
                 break;
             case MotionEvent.ACTION_UP:
                 mPressEndTime = System.currentTimeMillis();
-                if (mMode == MODE_DRAG)
+                if (mMode == MODE_DRAG) {
                     mMode = MODE_NORMAL;
-                    //点击，模拟左键点击
-                else{
+                } else if (mMode == MODE_NORMAL){
                     final double xP = motionEvent.getX() / view.getWidth();
                     final double yP = motionEvent.getY() / view.getHeight();
                     Log.i("CLIENT", (mPressEndTime - mPressStartTime)+ " asdf");
